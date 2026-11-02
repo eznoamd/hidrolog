@@ -15,6 +15,7 @@ permissions:
 jobs:
   instalador:
     runs-on: windows-latest
+    timeout-minutes: 60
     defaults:
       run:
         shell: pwsh
@@ -44,22 +45,26 @@ jobs:
 
       - name: Autoteste do executável (com o plugin de exemplo)
         working-directory: instalador
+        timeout-minutes: 10
         run: |
           $relatorio = Join-Path $PWD "autoteste.txt"
           $plugin = Resolve-Path "..\exemplos\plugin-termometro"
-          $p = Start-Process -FilePath "dist\Hidrolog\Hidrolog.exe" -Wait -PassThru `
+          $p = Start-Process -FilePath "dist\Hidrolog\Hidrolog.exe" -PassThru `
                -ArgumentList "--autoteste", "`"$relatorio`"", "--plugin", "`"$plugin`""
+          if (-not $p.WaitForExit(300000)) { $p.Kill(); throw "o autoteste não terminou em 5 minutos" }
           Get-Content $relatorio
           if ($p.ExitCode -ne 0) { throw "autoteste falhou (código $($p.ExitCode))" }
 
       - name: Criar o master pela linha de comando do executável
         working-directory: instalador
+        timeout-minutes: 10
         run: |
           $env:HIDROLOG_DADOS_DIR = Join-Path $env:RUNNER_TEMP "hidrolog-admin"
           $senha = Join-Path $env:RUNNER_TEMP "senha.txt"
           Set-Content -Path $senha -Value "senha-do-ci-123" -Encoding utf8
-          $p = Start-Process -FilePath "dist\Hidrolog\Hidrolog.exe" -Wait -PassThru `
+          $p = Start-Process -FilePath "dist\Hidrolog\Hidrolog.exe" -PassThru `
                -ArgumentList "admin", "criar-master", "--login", "ci", "--senha-arquivo", "`"$senha`""
+          if (-not $p.WaitForExit(120000)) { $p.Kill(); throw "criar-master não terminou em 2 minutos" }
           if ($p.ExitCode -ne 0) { throw "criar-master falhou (código $($p.ExitCode))" }
           if (-not (Test-Path (Join-Path $env:HIDROLOG_DADOS_DIR "hidrolog.db"))) { throw "banco não criado" }
 
@@ -70,19 +75,35 @@ jobs:
           & "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe" "/DVersao=${{ steps.versao.outputs.versao }}" hidrolog.iss
           if ($LASTEXITCODE -ne 0) { throw "ISCC falhou" }
 
-      - name: Instalar em silêncio e rodar o autoteste no app instalado
+      # os passos que rodam programas esperam só pelo processo, com limite de tempo
+      # (o Start-Process -Wait espera também os processos filhos e pode nunca voltar)
+      - name: Instalar em silêncio
         working-directory: instalador
+        timeout-minutes: 10
         run: |
           $destino = Join-Path $env:RUNNER_TEMP "Hidrolog-instalado"
+          $log = Join-Path $env:RUNNER_TEMP "instalacao.log"
           $setup = Get-Item "dist\Hidrolog-Setup-*.exe"
-          $p = Start-Process -FilePath $setup.FullName -Wait -PassThru `
-               -ArgumentList "/VERYSILENT", "/SUPPRESSMSGBOXES", "/NORESTART", "/DIR=`"$destino`""
+          $p = Start-Process -FilePath $setup.FullName -PassThru `
+               -ArgumentList "/VERYSILENT", "/SUPPRESSMSGBOXES", "/NORESTART", "/SP-", "/DIR=`"$destino`"", "/LOG=`"$log`""
+          if (-not $p.WaitForExit(300000)) { $p.Kill(); throw "a instalação não terminou em 5 minutos" }
           if ($p.ExitCode -ne 0) { throw "instalação falhou (código $($p.ExitCode))" }
+          if (-not (Test-Path (Join-Path $destino "Hidrolog.exe"))) { throw "Hidrolog.exe não foi instalado" }
+
+      - name: Log da instalação
+        if: always()
+        run: Get-Content (Join-Path $env:RUNNER_TEMP "instalacao.log") -ErrorAction SilentlyContinue
+
+      - name: Autoteste no app instalado
+        timeout-minutes: 10
+        run: |
+          $destino = Join-Path $env:RUNNER_TEMP "Hidrolog-instalado"
           $relatorio = Join-Path $env:RUNNER_TEMP "autoteste-instalado.txt"
-          $p = Start-Process -FilePath (Join-Path $destino "Hidrolog.exe") -Wait -PassThru `
+          $p = Start-Process -FilePath (Join-Path $destino "Hidrolog.exe") -PassThru `
                -ArgumentList "--autoteste", "`"$relatorio`""
-          Get-Content $relatorio
-          if ($p.ExitCode -ne 0) { throw "autoteste do app instalado falhou" }
+          if (-not $p.WaitForExit(300000)) { $p.Kill(); throw "o autoteste não terminou em 5 minutos" }
+          Get-Content $relatorio -ErrorAction SilentlyContinue
+          if ($p.ExitCode -ne 0) { throw "autoteste do app instalado falhou (código $($p.ExitCode))" }
 
       - name: Guardar o instalador
         uses: actions/upload-artifact@v4
@@ -99,6 +120,7 @@ jobs:
   testes:
     # informativo: os testes do projeto no Windows (não bloqueiam o instalador)
     runs-on: windows-latest
+    timeout-minutes: 30
     defaults:
       run:
         shell: pwsh

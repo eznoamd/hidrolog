@@ -89,5 +89,9 @@ def zip_sd(tmp_path, pasta_sd):
     with zipfile.ZipFile(caminho, "w", zipfile.ZIP_DEFLATED) as z:
         for arq in sorted(pasta_sd.rglob("*")):
             if arq.is_file():
-                z.write(arq, str(arq.relative_to(pasta_sd)).replace("/", "\\"))
+                info = zipfile.ZipInfo.from_file(arq)
+                # o nome vai depois de criar a entrada: no Windows, o ZipInfo troca "\\" por "/"
+                info.filename = arq.relative_to(pasta_sd).as_posix().replace("/", "\\")
+                info.compress_type = zipfile.ZIP_DEFLATED
+                z.writestr(info, arq.read_bytes())
     return caminho
