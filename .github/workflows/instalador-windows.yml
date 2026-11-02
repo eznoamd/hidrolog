@@ -86,7 +86,12 @@ jobs:
           $setup = Get-Item "dist\Hidrolog-Setup-*.exe"
           $p = Start-Process -FilePath $setup.FullName -PassThru `
                -ArgumentList "/VERYSILENT", "/SUPPRESSMSGBOXES", "/NORESTART", "/SP-", "/DIR=`"$destino`"", "/LOG=`"$log`""
-          if (-not $p.WaitForExit(300000)) { $p.Kill(); throw "a instalação não terminou em 5 minutos" }
+          if (-not $p.WaitForExit(300000)) {
+            "Processos abertos durante a espera:"
+            Get-Process | Where-Object { $_.StartTime -gt (Get-Date).AddMinutes(-6) } |
+              Select-Object Name, Id, StartTime, Path | Format-Table -AutoSize | Out-String -Width 250
+            $p.Kill(); throw "a instalação não terminou em 5 minutos"
+          }
           if ($p.ExitCode -ne 0) { throw "instalação falhou (código $($p.ExitCode))" }
           if (-not (Test-Path (Join-Path $destino "Hidrolog.exe"))) { throw "Hidrolog.exe não foi instalado" }
 

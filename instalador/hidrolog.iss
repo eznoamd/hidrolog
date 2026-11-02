@@ -35,7 +35,9 @@ ArchitecturesAllowed=x64compatible
 ArchitecturesInstallIn64BitMode=x64compatible
 UninstallDisplayIcon={app}\Hidrolog.exe
 UninstallDisplayName=Hidrolog
-CloseApplications=yes
+; não consulta o Gerenciador de Reinicialização: o app vai para uma pasta do usuário
+; e, em máquinas sem sessão (CI), essa consulta pode ficar esperando
+CloseApplications=no
 
 [Languages]
 Name: "ptbr"; MessagesFile: "compiler:Languages\BrazilianPortuguese.isl"
@@ -129,17 +131,17 @@ begin
     Login := Trim(PaginaMaster.Values[0]);
     if (Login = '') or (Pos(' ', Login) > 0) then
     begin
-      MsgBox('Informe um login sem espaços.', mbError, MB_OK);
+      SuppressibleMsgBox('Informe um login sem espaços.', mbError, MB_OK, IDOK);
       Result := False;
     end
     else if Length(PaginaMaster.Values[2]) < SENHA_MINIMA then
     begin
-      MsgBox('A senha precisa de pelo menos 8 caracteres.', mbError, MB_OK);
+      SuppressibleMsgBox('A senha precisa de pelo menos 8 caracteres.', mbError, MB_OK, IDOK);
       Result := False;
     end
     else if PaginaMaster.Values[2] <> PaginaMaster.Values[3] then
     begin
-      MsgBox('As senhas não conferem.', mbError, MB_OK);
+      SuppressibleMsgBox('As senhas não conferem.', mbError, MB_OK, IDOK);
       Result := False;
     end;
   end;
@@ -172,8 +174,8 @@ begin
     + '" --senha-arquivo "' + Arquivo + '"';
   if not Exec(ExpandConstant('{app}\Hidrolog.exe'), Parametros, '', SW_HIDE, ewWaitUntilTerminated, Codigo)
      or (Codigo <> 0) then
-    MsgBox('Não foi possível criar o usuário master agora. Ao abrir o Hidrolog, a tela inicial '
-      + 'mostra o comando para criá-lo.', mbError, MB_OK);
+    SuppressibleMsgBox('Não foi possível criar o usuário master agora. Ao abrir o Hidrolog, a tela inicial '
+      + 'mostra o comando para criá-lo.', mbError, MB_OK, IDOK);
   DeleteFile(Arquivo);
 end;
 
