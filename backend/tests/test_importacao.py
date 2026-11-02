@@ -34,7 +34,8 @@ def test_importar_pasta_local(cadastro, equipamento, pasta_sd):
 
 def test_importar_zip_com_caminhos_do_windows(cadastro, equipamento, zip_sd):
     with zipfile.ZipFile(zip_sd) as z:
-        assert any("\\" in n for n in z.namelist())
+        # orig_filename: o nome como está no arquivo (no Windows, namelist() já troca "\\" por "/")
+        assert any("\\" in i.orig_filename for i in z.infolist())
     resumo = servico.importar_caminho(cadastro, equipamento.id, zip_sd)
     _confere_sd(resumo, "local", "zip")
     assert "Logger/Backup/logger_backup.csv" in resumo.arquivos_ignorados
