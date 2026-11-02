@@ -1,0 +1,20 @@
+[build-system]
+requires = ["setuptools>=64"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "hidrolog-termometro"
+version = "0.1.0"
+description = "Plugin de exemplo para o Hidrolog (termômetro em CSV)"
+requires-python = ">=3.10"
+dependencies = ["hidrolog-backend"]
+
+# so para o caminho de desenvolvimento (pip install -e); o gerenciador de plugins nao usa
+[project.entry-points."hidrolog.plugins"]
+termometro = "hidrolog_termometro:PLUGIN"
+
+[tool.setuptools.packages.find]
+include = ["hidrolog_termometro*"]
+
+[tool.setuptools.package-data]
+"*" = ["amostra/*"]

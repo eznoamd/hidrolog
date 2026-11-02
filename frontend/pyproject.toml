@@ -1,0 +1,33 @@
+[build-system]
+requires = ["setuptools>=64"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "hidrolog"
+version = "0.1.0"
+description = "Hidrolog: app desktop PySide6 para cadastrar e consultar dados de sensores ambientais"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "hidrolog-backend",   # ../backend (pacote "app"):        pip install -e ../backend
+    "hidrolog-design",    # ../design  (pacote "design"):     pip install -e ../design
+    "PySide6>=6.6",
+    "matplotlib>=3.8",
+    "numpy",
+]
+
+[project.optional-dependencies]
+testes = ["pytest", "pytest-qt"]
+
+[project.gui-scripts]
+hidrolog = "hidrolog.aplicacao:main"
+
+[tool.setuptools.packages.find]
+include = ["hidrolog*"]
+
+[tool.setuptools.package-data]
+"hidrolog.ajuda" = ["topicos/*.md"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+qt_api = "pyside6"

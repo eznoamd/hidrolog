@@ -1,0 +1,4 @@
+chuva:0.000
+temperatura:21.6
+status:0
+tensao:11.95

@@ -1,0 +1,13 @@
+# Plugin de exemplo do Hidrolog: o modelo para um sensor novo (ver COMO-CRIAR-UM-PLUGIN.md, nesta pasta).
+# Copie esta pasta para um repositório próprio e troque o que for do seu sensor.
+codigo = "termometro"
+nome = "Termômetro de exemplo"
+versao = "0.1.0"
+contrato = "1.x"
+autor = "Hidrolog"
+descricao = "Plugin mínimo de referência: um CSV com data_hora;temperatura_c por linha."
+icone = "gauge"
+modulo = "hidrolog_termometro"
+requer = []
+tabelas = ["termometro_leitura"]
+cadastro = ["Intervalo de amostragem esperado", "Altura do sensor"]

@@ -1,0 +1,4 @@
+chuva:3.800
+temperatura:19.2
+status:0
+tensao:12.25

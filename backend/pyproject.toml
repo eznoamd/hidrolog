@@ -1,0 +1,39 @@
+[build-system]
+requires = ["setuptools>=64"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "hidrolog-backend"
+version = "0.1.0"
+description = "Backend local do Hidrolog: importa dados de sensores (cada tipo e um plugin) para um banco SQLite"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "numpy",
+    "sqlalchemy>=2.0",
+    "alembic>=1.13",
+    "argon2-cffi>=23",
+    "netCDF4>=1.6",
+    "rarfile>=4.0",
+    "fastapi",
+    "uvicorn",
+    "python-multipart",
+    "tomli; python_version < '3.11'",
+]
+
+[project.optional-dependencies]
+testes = ["pytest", "httpx"]
+postgres = ["psycopg[binary]"]
+
+[project.entry-points.pytest11]
+hidrolog_conformidade = "hidrolog_nucleo.testes.conformidade"
+
+[tool.setuptools.packages.find]
+include = ["app*", "hidrolog_nucleo*"]
+
+[tool.setuptools.package-data]
+"*" = ["*.mako"]
+"app.nucleo" = ["migracoes/*.py", "migracoes/*.mako", "migracoes/versions/*.py"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

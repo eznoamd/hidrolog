@@ -1,0 +1,12 @@
+# Sensor de teste do núcleo (não é distribuído): uma estação fictícia que
+# grava um arquivo AAAAMMDDHHMMSS.txt por leitura, com linhas "chave:valor".
+codigo = "estacao"
+nome = "Estação de teste"
+versao = "1.0.0"
+contrato = "1.x"
+autor = "Testes do Hidrolog"
+descricao = "Sensor fictício usado só nos testes do núcleo."
+icone = "gauge"
+modulo = "sensor_teste"
+tabelas = ["estacao_leitura"]
+cadastro = ["Intervalo de amostragem"]

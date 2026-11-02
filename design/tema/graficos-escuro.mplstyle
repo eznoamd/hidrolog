@@ -1,0 +1,57 @@
+# Hidrolog — estilo matplotlib, tema escuro (gerado de tokens.py)
+# A fonte Inter precisa estar instalada ou registrada (registrar_fontes_matplotlib).
+font.family: sans-serif
+font.sans-serif: Inter, DejaVu Sans
+font.monospace: JetBrains Mono NL, DejaVu Sans Mono
+font.size: 9.0
+axes.titlesize: 10.0
+axes.titleweight: semibold
+axes.titlelocation: left
+axes.titlepad: 8.0
+axes.labelsize: 9.0
+axes.labelcolor: B3B9C1
+axes.labelpad: 6.0
+figure.titlesize: 11.0
+figure.titleweight: semibold
+figure.facecolor: 1A1D21
+figure.edgecolor: 1A1D21
+figure.dpi: 100
+figure.constrained_layout.use: True
+savefig.facecolor: 1A1D21
+savefig.dpi: 150
+axes.facecolor: 1A1D21
+axes.edgecolor: 6C7580
+axes.linewidth: 0.8
+axes.grid: True
+axes.axisbelow: True
+axes.spines.top: False
+axes.spines.right: False
+axes.prop_cycle: cycler('color', ['6DB6DB', 'E8955C', '6CC08F', 'B39DDB', 'EF7B70', 'A3ADB8'])
+axes.titlecolor: E7E9EC
+grid.color: 2C3138
+grid.linewidth: 0.6
+grid.alpha: 1.0
+lines.linewidth: 1.2
+lines.markersize: 4
+patch.edgecolor: 1A1D21
+text.color: E7E9EC
+xtick.color: 6C7580
+ytick.color: 6C7580
+xtick.labelcolor: B3B9C1
+ytick.labelcolor: B3B9C1
+xtick.labelsize: 8.5
+ytick.labelsize: 8.5
+xtick.major.size: 3
+ytick.major.size: 3
+legend.frameon: True
+legend.framealpha: 0.92
+legend.facecolor: 1A1D21
+legend.edgecolor: 2C3138
+legend.fontsize: 8.5
+legend.labelcolor: B3B9C1
+image.cmap: viridis
+axes.formatter.use_locale: False
+date.autoformatter.day: %d/%m
+date.autoformatter.hour: %d/%m %H:%M
+date.autoformatter.minute: %H:%M
+date.autoformatter.month: %m/%Y

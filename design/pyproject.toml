@@ -1,0 +1,23 @@
+[build-system]
+requires = ["setuptools>=64"]
+build-backend = "setuptools.build_meta"
+
+# Torna a pasta design/ instalável como o pacote "design" (tema + componentes),
+# para o front (frontend/) usar com `pip install -e ../design`.
+# A pasta é o próprio pacote (design/__init__.py), por isso package-dir = ".".
+[project]
+name = "hidrolog-design"
+version = "0.1.0"
+description = "Design do Hidrolog: tema Qt, tokens, estilo dos gráficos e componentes PySide6"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = ["PySide6>=6.6", "matplotlib>=3.8", "numpy", "tomli; python_version < '3.11'"]
+
+[tool.setuptools]
+package-dir = { "design" = "." }
+packages = ["design", "design.tema", "design.componentes"]
+include-package-data = false
+
+[tool.setuptools.package-data]
+"design" = ["assets/*.png", "assets/*.svg", "assets/logo/*", "assets/icones/*"]
+"design.tema" = ["*.qss", "*.mplstyle", "fontes/*"]
