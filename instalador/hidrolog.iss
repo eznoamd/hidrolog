@@ -126,6 +126,10 @@ var
   Login: String;
 begin
   Result := True;
+  { a instalação silenciosa também "avança" pelas páginas, sem ninguém digitar:
+    não valida (o master fica para a tela inicial do app, ver CriarMaster) }
+  if WizardSilent then
+    exit;
   if CurPageID = PaginaMaster.ID then
   begin
     Login := Trim(PaginaMaster.Values[0]);
