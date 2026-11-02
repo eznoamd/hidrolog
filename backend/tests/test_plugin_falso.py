@@ -35,3 +35,18 @@ def test_importar_no_plugin_falso(cadastro, banco, tmp_path):
         assert sessao.scalar(select(func.count(FalsoLeitura.id))) == 2
         assert sessao.scalar(select(func.count(EstacaoLeitura.id))) == 0
     assert servico.listar_formatos_exportacao(eq.id) == []
+
+
+def test_migracoes_num_caminho_com_espaco(tmp_path, monkeypatch):
+    """No Windows o app fica em C:\\Users\\<usuário>\\..., e o nome do usuário pode
+    ter espaço: as migrações precisam ser achadas mesmo assim."""
+    import shutil
+
+    from app.nucleo import banco as modulo_banco
+
+    destino = tmp_path / "Maria Clara" / "migracoes"
+    shutil.copytree(modulo_banco.DIRETORIO_MIGRACOES, destino, ignore=shutil.ignore_patterns("__pycache__"))
+    monkeypatch.setattr(modulo_banco, "DIRETORIO_MIGRACOES", destino)
+    b = modulo_banco.Banco(f"sqlite:///{tmp_path / 'com espaco.db'}")
+    assert {"usuario", "tipo_sensor", "equipamento"} <= set(inspect(b.engine).get_table_names())
+    b.fechar()

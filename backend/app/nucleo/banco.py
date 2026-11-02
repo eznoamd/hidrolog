@@ -53,8 +53,10 @@ def config_alembic(url: str) -> Config:
     locais = [DIRETORIO_MIGRACOES / "versions"]
     locais += [p.migracoes for p in plugins.todos() if p.migracoes]
     locais += [l for l in plugins.migracoes_inativas() if l not in locais]
-    cfg.set_main_option("version_locations", " ".join(str(l) for l in locais))
-    cfg.set_main_option("path_separator", "space")
+    # um caminho por linha: caminhos podem ter espaço (ex.: C:\Users\Maria Clara\...),
+    # e separados por espaço o Alembic não achava nenhuma migração
+    cfg.set_main_option("version_locations", "\n".join(str(l) for l in locais))
+    cfg.set_main_option("path_separator", "newline")
     cfg.set_main_option("sqlalchemy.url", url.replace("%", "%%"))
     return cfg
 
@@ -86,6 +88,8 @@ class Banco:
         cfg = config_alembic(self.url)
         script = ScriptDirectory.from_config(cfg)
         rotulos = {r for rev in script.walk_revisions() for r in (rev.branch_labels or ())}
+        if "nucleo" not in rotulos:
+            raise RuntimeError(f"migrações do núcleo não encontradas em {DIRETORIO_MIGRACOES / 'versions'}")
         alvos = ["nucleo@head"] + [f"{p.codigo}@head" for p in plugins.todos() if p.codigo in rotulos]
         self.backups: list[Path] = []
         with self.engine.connect() as conexao:

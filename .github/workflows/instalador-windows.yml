@@ -81,7 +81,7 @@ jobs:
         working-directory: instalador
         timeout-minutes: 10
         run: |
-          $destino = Join-Path $env:RUNNER_TEMP "Hidrolog-instalado"
+          $destino = Join-Path $env:RUNNER_TEMP "Hidrolog instalado"   # com espaço, como C:\Users\Maria Clara\...
           $log = Join-Path $env:RUNNER_TEMP "instalacao.log"
           $setup = Get-Item "dist\Hidrolog-Setup-*.exe"
           $p = Start-Process -FilePath $setup.FullName -PassThru `
@@ -102,7 +102,7 @@ jobs:
       - name: Autoteste no app instalado
         timeout-minutes: 10
         run: |
-          $destino = Join-Path $env:RUNNER_TEMP "Hidrolog-instalado"
+          $destino = Join-Path $env:RUNNER_TEMP "Hidrolog instalado"   # com espaço, como C:\Users\Maria Clara\...
           $relatorio = Join-Path $env:RUNNER_TEMP "autoteste-instalado.txt"
           $p = Start-Process -FilePath (Join-Path $destino "Hidrolog.exe") -PassThru `
                -ArgumentList "--autoteste", "`"$relatorio`""
