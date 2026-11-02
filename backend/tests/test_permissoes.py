@@ -137,3 +137,20 @@ def test_a_propria_conta(leitor, master, equipamento):
     resumo = servico.importar_caminho(master, equipamento.id, PASTA_DADOS)
     assert [e.id for e in servico.meus_envios(master)] == [resumo.id]
     assert servico.meus_envios(leitor) == []
+
+
+def test_criar_master_pela_linha_de_comando_com_senha_em_arquivo(tmp_path, monkeypatch):
+    """O instalador cria o master assim: a senha vai num arquivo temporário,
+    nunca na linha de comando."""
+    from app.__main__ import main
+
+    monkeypatch.setenv("HIDROLOG_DADOS_DIR", str(tmp_path / "dados"))
+    monkeypatch.delenv("DATABASE_URL", raising=False)
+    servico.encerrar()
+    arquivo = tmp_path / "senha.txt"
+    arquivo.write_text("senha-do-instalador\r\n", encoding="utf-8")
+    try:
+        assert main(["criar-master", "--login", "chefe", "--nome", "Chefe do Lab", "--senha-arquivo", str(arquivo)]) == 0
+        assert servico.autenticar("chefe", "senha-do-instalador").perfil == "master"
+    finally:
+        servico.encerrar()

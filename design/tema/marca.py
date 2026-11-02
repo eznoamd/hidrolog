@@ -109,12 +109,18 @@ class Marca:
 
         dados: dict = {}
         if (pasta / ARQUIVO_MARCA).is_file():
-            dados = tomllib.loads((pasta / ARQUIVO_MARCA).read_text(encoding="utf-8"))
+            dados = tomllib.loads((pasta / ARQUIVO_MARCA).read_text(encoding="utf-8-sig"))  # aceita BOM
         lab, inst = dados.get("laboratorio", {}), dados.get("instituicao", {})
         mapa, cores = dados.get("mapa", {}), dados.get("cores", {})
+
+        def texto(secao: dict, chave: str) -> str | None:
+            """Campo de texto; vazio (ex.: deixado em branco no instalador) conta como ausente."""
+            valor = str(secao.get(chave) or "").strip()
+            return valor or None
+
         campos: dict = dict(
-            laboratorio=lab.get("sigla"), laboratorio_completo=lab.get("nome"),
-            instituicao=inst.get("nome"), instituicao_sigla=inst.get("sigla"),
+            laboratorio=texto(lab, "sigla"), laboratorio_completo=texto(lab, "nome"),
+            instituicao=texto(inst, "nome"), instituicao_sigla=texto(inst, "sigla"),
             logo=arquivo(lab.get("logo", ""), "logo.svg", "logo.png"),
             logo_escura=arquivo(lab.get("logo_escura", ""), "logo-escura.svg", "logo-escura.png"),
             logo_instituicao=arquivo(inst.get("logo", ""), "instituicao.svg", "instituicao.png"),

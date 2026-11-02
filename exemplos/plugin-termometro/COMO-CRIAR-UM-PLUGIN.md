@@ -310,6 +310,13 @@ informe sempre a **tag ou release**: o app baixa
 não muda sozinho. Se o mesmo código vier das duas fontes, vale o de desenvolvimento e a tela
 Plugins mostra o conflito.
 
+No app instalado pelo instalador do Windows, o plugin roda dentro do executável do Hidrolog e
+conta com o que vem nele: a biblioteca padrão do Python, numpy, matplotlib, netCDF4, SQLAlchemy,
+PySide6 e o `design`. Qualquer outra dependência em Python puro precisa vir dentro do pacote do
+plugin (por exemplo, uma subpasta com a biblioteca); dependências compiladas fora dessa lista não
+funcionam no app instalado. O autoteste do executável (`Hidrolog.exe --autoteste --plugin PASTA`)
+confere isso: instala o plugin, importa e exporta a amostra e monta as abas.
+
 ## 12. Uso
 
 Equipamentos → Novo equipamento → tipo do seu sensor: o formulário já traz os campos da

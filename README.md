@@ -85,6 +85,7 @@ hidrolog/
 ├── design/       tema, componentes de interface e o catálogo deles, pacote "design"
 ├── exemplos/
 │   └── plugin-termometro/  um plugin de sensor completo e pequeno, com o guia de criação
+├── instalador/   o instalador Windows (PyInstaller + Inno Setup)
 ├── scripts/      testar.sh: roda todos os testes
 └── img/          capturas usadas neste README
 ```
@@ -198,6 +199,14 @@ O banco, o log e as preferências ficam na pasta de dados do usuário:
 `~/Library/Application Support/Hidrolog` (macOS). A variável `HIDROLOG_DADOS_DIR` troca a pasta.
 Importar `.rar` compactado precisa de um descompactador no sistema (`sudo apt install unar`).
 
+## Instalador Windows
+
+Para usar o Hidrolog no Windows sem instalar Python, baixe o `Hidrolog-Setup-<versão>.exe` na
+página de releases do repositório e siga as telas: o instalador cria o usuário master e, se
+desejado, grava o nome e as logos do laboratório e da instituição. Ele é gerado pelo GitHub
+Actions a cada tag `v*` (ou à mão, em Actions → Instalador Windows); detalhes em
+[`instalador/README.md`](instalador/README.md).
+
 ## Testes
 
 ```bash
@@ -213,6 +222,7 @@ e não precisam de tela, de internet nem de nenhum plugin real.
 - [`backend/README.md`](backend/README.md): camada de serviço, banco, importação, qualidade, API e linha de comando.
 - [`frontend/README.md`](frontend/README.md): telas, perfis, abas dos plugins, testes e ferramenta ponta a ponta.
 - [`design/README.md`](design/README.md): guia de design, tema, componentes e marca.
+- [`instalador/README.md`](instalador/README.md): o instalador Windows e como ele é gerado.
 - [`exemplos/plugin-termometro/README.md`](exemplos/plugin-termometro/README.md): o plugin de exemplo, arquivo por arquivo.
 - [`exemplos/plugin-termometro/COMO-CRIAR-UM-PLUGIN.md`](exemplos/plugin-termometro/COMO-CRIAR-UM-PLUGIN.md): como criar um plugin.
 

@@ -8,7 +8,8 @@
     venv/bin/python -m app envios --login fulano
     venv/bin/python -m app servidor [--porta 8000]
 
-As senhas sao pedidas no terminal (ou lidas de HIDROLOG_SENHA, para scripts).
+As senhas sao pedidas no terminal, lidas de HIDROLOG_SENHA ou de um arquivo
+(--senha-arquivo, usado pelo instalador: a senha nao aparece na linha de comando).
 """
 
 from __future__ import annotations
@@ -22,7 +23,10 @@ import sys
 from dataclasses import asdict, is_dataclass
 
 
-def _senha(confirmar: bool = False) -> str:
+def _senha(confirmar: bool = False, arquivo: str | None = None) -> str:
+    if arquivo:
+        with open(arquivo, encoding="utf-8-sig") as f:      # o instalador grava com BOM
+            return f.read().rstrip("\r\n")
     if os.environ.get("HIDROLOG_SENHA"):
         return os.environ["HIDROLOG_SENHA"]
     senha = getpass.getpass("senha: ")
@@ -46,8 +50,10 @@ def main(argv=None) -> int:
     p = sub.add_parser("criar-master", help="cria o usuario master (so se nao houver nenhum)")
     p.add_argument("--login", required=True)
     p.add_argument("--nome")
+    p.add_argument("--senha-arquivo", help="le a senha deste arquivo (primeira linha)")
     p = sub.add_parser("redefinir-senha", help="redefine a senha de um usuario (acesso ao arquivo do banco)")
     p.add_argument("--login", required=True)
+    p.add_argument("--senha-arquivo", help="le a senha deste arquivo (primeira linha)")
     sub.add_parser("migrar", help="aplica as migracoes pendentes")
     p = sub.add_parser("nova-migracao", help="gera uma migracao (autogenerate) para o nucleo ou um sensor")
     p.add_argument("--sensor", help="codigo do plugin; sem ele, migracao do nucleo")
@@ -72,11 +78,12 @@ def main(argv=None) -> int:
     try:
         if args.comando == "criar-master":
             from .nucleo.administracao import criar_master
-            criar_master(servico.banco(), args.login, args.nome or args.login, _senha(confirmar=True))
+            criar_master(servico.banco(), args.login, args.nome or args.login,
+                         _senha(confirmar=True, arquivo=args.senha_arquivo))
             print(f"master '{args.login}' criado")
         elif args.comando == "redefinir-senha":
             from .nucleo.administracao import redefinir_senha
-            redefinir_senha(servico.banco(), args.login, _senha(confirmar=True))
+            redefinir_senha(servico.banco(), args.login, _senha(confirmar=True, arquivo=args.senha_arquivo))
             print("senha redefinida")
         elif args.comando == "migrar":
             servico.banco()

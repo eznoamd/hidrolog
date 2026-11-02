@@ -16,7 +16,15 @@ from design.componentes import Botao, Cartao, Divisoria, FaixaAviso, LogoMarca, 
 from design.tema import DIMENSAO, ESPACO, marca_atual
 
 
+def empacotado() -> bool:
+    """True no app instalado (PyInstaller): não há pasta do backend nem venv."""
+    return bool(getattr(sys, "frozen", False))
+
+
 def pasta_backend() -> Path:
+    """Onde rodar o comando: a pasta do backend, ou a do Hidrolog.exe no app instalado."""
+    if empacotado():
+        return Path(sys.executable).resolve().parent
     import app
 
     return Path(app.__file__).resolve().parent.parent
@@ -26,6 +34,8 @@ def comando_criar_master(em_linhas: bool = False) -> str:
     """O comando exato, para rodar na pasta do backend. `em_linhas`: com a
     variável de ambiente numa linha e o comando na seguinte (com "\\" no fim
     da primeira, continua valendo se for colado no terminal)."""
+    if empacotado():
+        return f'"{Path(sys.executable).resolve()}" admin criar-master --login admin --nome "Seu nome"'
     pasta = pasta_backend()
     python = "venv/bin/python" if (pasta / "venv" / "bin" / "python").exists() else (
         r"venv\Scripts\python" if (pasta / "venv" / "Scripts" / "python.exe").exists() else "python")
@@ -75,7 +85,8 @@ class TelaSemMaster(QWidget):
             "Depois disso, o master entra aqui e cadastra as outras pessoas.", "secundario", quebra=True))
         v.addSpacing(ESPACO["sm"])
 
-        v.addWidget(rotulo("1. Abra um terminal na pasta do backend", "rotulo_campo"))
+        v.addWidget(rotulo("1. Abra o Prompt de Comando (o comando abaixo já traz o caminho do Hidrolog)"
+                           if empacotado() else "1. Abra um terminal na pasta do backend", "rotulo_campo"))
         self.pasta, caixa = self._caixa_mono(str(pasta_backend()))
         v.addWidget(caixa)
         v.addWidget(rotulo("2. Rode o comando (ele pede a senha duas vezes; troque “admin” e o nome se quiser)",

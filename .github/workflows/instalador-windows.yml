@@ -1,0 +1,122 @@
+# Gera o instalador do Hidrolog para Windows (instalador/hidrolog.spec + hidrolog.iss).
+# Roda à mão (Actions → Instalador Windows → Run workflow) ou ao publicar uma tag v*,
+# que também cria a release com o Hidrolog-Setup-<versão>.exe.
+
+name: Instalador Windows
+
+on:
+  workflow_dispatch:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+jobs:
+  instalador:
+    runs-on: windows-latest
+    defaults:
+      run:
+        shell: pwsh
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Instalar o Hidrolog e o PyInstaller
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install ./backend ./design ./frontend pyinstaller
+
+      - name: Versão
+        id: versao
+        run: |
+          if ($env:GITHUB_REF -like "refs/tags/v*") { $v = $env:GITHUB_REF -replace "^refs/tags/v", "" }
+          else { $v = python -c "import hidrolog; print(hidrolog.VERSAO)" }
+          "versao=$v" >> $env:GITHUB_OUTPUT
+          "Versão: $v"
+
+      - name: Gerar o executável (PyInstaller)
+        working-directory: instalador
+        run: pyinstaller --noconfirm hidrolog.spec
+
+      - name: Autoteste do executável (com o plugin de exemplo)
+        working-directory: instalador
+        run: |
+          $relatorio = Join-Path $PWD "autoteste.txt"
+          $plugin = Resolve-Path "..\exemplos\plugin-termometro"
+          $p = Start-Process -FilePath "dist\Hidrolog\Hidrolog.exe" -Wait -PassThru `
+               -ArgumentList "--autoteste", "`"$relatorio`"", "--plugin", "`"$plugin`""
+          Get-Content $relatorio
+          if ($p.ExitCode -ne 0) { throw "autoteste falhou (código $($p.ExitCode))" }
+
+      - name: Criar o master pela linha de comando do executável
+        working-directory: instalador
+        run: |
+          $env:HIDROLOG_DADOS_DIR = Join-Path $env:RUNNER_TEMP "hidrolog-admin"
+          $senha = Join-Path $env:RUNNER_TEMP "senha.txt"
+          Set-Content -Path $senha -Value "senha-do-ci-123" -Encoding utf8
+          $p = Start-Process -FilePath "dist\Hidrolog\Hidrolog.exe" -Wait -PassThru `
+               -ArgumentList "admin", "criar-master", "--login", "ci", "--senha-arquivo", "`"$senha`""
+          if ($p.ExitCode -ne 0) { throw "criar-master falhou (código $($p.ExitCode))" }
+          if (-not (Test-Path (Join-Path $env:HIDROLOG_DADOS_DIR "hidrolog.db"))) { throw "banco não criado" }
+
+      - name: Gerar o instalador (Inno Setup)
+        working-directory: instalador
+        run: |
+          choco install innosetup --no-progress -y
+          & "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe" "/DVersao=${{ steps.versao.outputs.versao }}" hidrolog.iss
+          if ($LASTEXITCODE -ne 0) { throw "ISCC falhou" }
+
+      - name: Instalar em silêncio e rodar o autoteste no app instalado
+        working-directory: instalador
+        run: |
+          $destino = Join-Path $env:RUNNER_TEMP "Hidrolog-instalado"
+          $setup = Get-Item "dist\Hidrolog-Setup-*.exe"
+          $p = Start-Process -FilePath $setup.FullName -Wait -PassThru `
+               -ArgumentList "/VERYSILENT", "/SUPPRESSMSGBOXES", "/NORESTART", "/DIR=`"$destino`""
+          if ($p.ExitCode -ne 0) { throw "instalação falhou (código $($p.ExitCode))" }
+          $relatorio = Join-Path $env:RUNNER_TEMP "autoteste-instalado.txt"
+          $p = Start-Process -FilePath (Join-Path $destino "Hidrolog.exe") -Wait -PassThru `
+               -ArgumentList "--autoteste", "`"$relatorio`""
+          Get-Content $relatorio
+          if ($p.ExitCode -ne 0) { throw "autoteste do app instalado falhou" }
+
+      - name: Guardar o instalador
+        uses: actions/upload-artifact@v4
+        with:
+          name: Hidrolog-Setup-${{ steps.versao.outputs.versao }}
+          path: instalador/dist/Hidrolog-Setup-*.exe
+
+      - name: Publicar na release (tags v*)
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: instalador/dist/Hidrolog-Setup-*.exe
+
+  testes:
+    # informativo: os testes do projeto no Windows (não bloqueiam o instalador)
+    runs-on: windows-latest
+    defaults:
+      run:
+        shell: pwsh
+    env:
+      QT_QPA_PLATFORM: offscreen
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Instalar
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ./backend -e ./design -e ./frontend pytest pytest-qt httpx
+      - name: Testes do backend
+        working-directory: backend
+        run: python -m pytest -q -p no:cacheprovider
+      - name: Testes do frontend
+        if: always()
+        working-directory: frontend
+        run: python -m pytest -q -p no:cacheprovider

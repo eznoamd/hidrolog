@@ -45,3 +45,15 @@ def test_pasta_de_marca_da_instalacao(qapp, tmp_path, marca_padrao):
     assert m.logo == tmp_path / "logo.png" and m.logo_instituicao == tmp_path / "instituicao.png"
     assert m.logo_escura is None and m.posicao_padrao_mapa == (-29.7, -53.7)
     assert LogoMarca(altura=60).tem_imagem
+
+
+def test_marca_do_instalador_com_campos_vazios_e_bom(tmp_path):
+    """O instalador do Windows grava o marca.toml em UTF-8 com BOM e com os campos
+    deixados em branco como texto vazio: valem como ausentes."""
+    from design.tema.marca import Marca
+
+    (tmp_path / "marca.toml").write_text(
+        '\ufeff[laboratorio]\nsigla = "LAB"\nnome = ""\n[instituicao]\nsigla = " "\nnome = ""\n', encoding="utf-8")
+    m = Marca.da_pasta(tmp_path)
+    assert m.laboratorio == "LAB"
+    assert m.laboratorio_completo is None and m.instituicao is None and m.instituicao_sigla is None

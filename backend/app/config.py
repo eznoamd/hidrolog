@@ -37,7 +37,7 @@ def instituicao_da_instalacao(diretorio_dados: Optional[Path]) -> str:
         import tomllib
     except ModuleNotFoundError:          # Python 3.10
         import tomli as tomllib
-    dados = tomllib.loads(arquivo.read_text(encoding="utf-8"))
+    dados = tomllib.loads(arquivo.read_text(encoding="utf-8-sig"))  # aceita o BOM do Bloco de Notas
     partes = []
     for secao in ("laboratorio", "instituicao"):
         nome, sigla = dados.get(secao, {}).get("nome"), dados.get(secao, {}).get("sigla")
@@ -72,6 +72,9 @@ class Configuracao:
             max_descompactado = int(os.environ.get("HIDROLOG_MAX_DESCOMPACTADO_MB", "2048")) * MB,
             max_arquivo_leitura = int(os.environ.get("HIDROLOG_MAX_ARQUIVO_KB", "1024")) * 1024,
             max_arquivos = int(os.environ.get("HIDROLOG_MAX_ARQUIVOS", "500000")),
-            processos = int(os.environ.get("HIDROLOG_PROCESSOS", str(min(4, os.cpu_count() or 1)))),
+            # no app empacotado (PyInstaller), um processo so por padrao: os processos
+            # filhos do pool sao novas execucoes do .exe
+            processos = int(os.environ.get("HIDROLOG_PROCESSOS",
+                                           "1" if getattr(sys, "frozen", False) else str(min(4, os.cpu_count() or 1)))),
             diretorio_dados = pasta,
         )
